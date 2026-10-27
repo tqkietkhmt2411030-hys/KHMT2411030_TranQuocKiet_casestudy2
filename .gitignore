@@ -1,0 +1,18 @@
+# Node.js
+api/node_modules/
+api/.env
+api/coverage/
+
+# Flutter
+TaskManager/.dart_tool/
+TaskManager/build/
+TaskManager/.flutter-plugins
+TaskManager/.flutter-plugins-dependencies
+TaskManager/android/local.properties
+TaskManager/ios/Flutter/.last_build_id
+
+# Editor and operating system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
