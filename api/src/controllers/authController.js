@@ -2,6 +2,7 @@
 const bcrypt = require("bcryptjs");
 const { validationResult } = require("express-validator");
 const User = require("../models/User");
+const jwt = require("jsonwebtoken");
 
 async function register(req, res) {
   // Kiểm tra dữ liệu đầu vào
@@ -64,4 +65,68 @@ async function register(req, res) {
   }
 }
 
-module.exports = { register };
+module.exports = { register, login };
+
+async function login(req, res) {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      message: "Dữ liệu không hợp lệ",
+      errors: errors.array(),
+    });
+  }
+
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({
+      email: email.trim().toLowerCase(),
+    }).select("+passwordHash");
+
+    if (!user) {
+      return res.status(401).json({
+        message: "Email hoặc mật khẩu không chính xác",
+      });
+    }
+
+    const passwordMatches = await bcrypt.compare(
+      password,
+      user.passwordHash
+    );
+
+    if (!passwordMatches) {
+      return res.status(401).json({
+        message: "Email hoặc mật khẩu không chính xác",
+      });
+    }
+
+    if (!process.env.JWT_SECRET) {
+      throw new Error("Thieu JWT_SECRET trong file .env");
+    }
+
+    const token = jwt.sign(
+      { sub: user._id.toString() },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    return res.status(200).json({
+      message: "Đăng nhập thành công",
+      token,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error.message);
+
+    return res.status(500).json({
+      message: "Không thể đăng nhập lúc này",
+    });
+  }
+}
+
