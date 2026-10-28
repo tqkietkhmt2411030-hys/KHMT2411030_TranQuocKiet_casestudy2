@@ -1,14 +1,18 @@
 
 const express = require("express");
 const { body } = require("express-validator");
+
 const {
   register,
   login,
+  getMe,
 } = require("../controllers/authController");
+
+const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// API đăng ký tài khoản
+// POST /api/auth/register - Dang ky tai khoan
 router.post(
   "/register",
   [
@@ -31,7 +35,7 @@ router.post(
   register
 );
 
-// API đăng nhập
+// POST /api/auth/login - Dang nhap
 router.post(
   "/login",
   [
@@ -46,5 +50,8 @@ router.post(
   ],
   login
 );
+
+// GET /api/auth/me - Lay thong tin nguoi dung hien tai
+router.get("/me", authMiddleware, getMe);
 
 module.exports = router;
